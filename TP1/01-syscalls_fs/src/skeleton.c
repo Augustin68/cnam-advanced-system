@@ -11,8 +11,10 @@
 #include<stdlib.h>
 #include<string.h>
 #include<errno.h>
-
 #include<getopt.h>
+
+#include "exercice1.h"
+#include "exercice2.h"
 
 #define STDOUT 1
 #define STDERR 2
@@ -183,59 +185,12 @@ int main(int argc, char** argv)
   // Business logic must be implemented at this point
 
   // TP1 exo 1
-  FILE* fd_source = fopen(bin_input_param, "rb");
-  if(fd_source == NULL) 
-  {
-    printf("Impossible d'ouvrir le fichier source.\n");
-    exit(EXIT_FAILURE);
-  }
-
-  FILE* fd_destination = fopen(bin_output_param, "wb");
-  if(fd_destination == NULL) 
-  {
-    printf("Impossible d'ouvrir le fichier de destination.\n");
-    exit(EXIT_FAILURE);
-  }
-
-  char buffer[BUFFER_SIZE];
-  size_t nb_char_read;
-
-  do 
-  {
-    nb_char_read = fread(buffer, 1, sizeof(buffer), fd_source);
-
-    if(nb_char_read == -1) 
-    {
-      printf("Esta muchos la mierdas\n");
-      fclose(fd_source);
-      fclose(fd_destination);
-      exit(EXIT_FAILURE);
-    } 
-
-    if(nb_char_read > 0) 
-    {
-      fwrite(buffer, 1, nb_char_read, fd_destination);
-    }
-  } while(nb_char_read == BUFFER_SIZE);
-
-  printf("Sikish ahein\n");
+  //usage: -i [input_file] -o [output_file
+  copyFile(bin_input_param, bin_output_param);
 
   // TP1 exo 2
-  size_t input_file_size = lseek(fd_source, 0, SEEK_END);
-  if(input_file_size == -1) 
-  {
-    printf("Impossible de lseek le fichier de destination.\n");
-    exit(EXIT_FAILURE);
-  }
+  printReverse(bin_input_param);
 
-  for(size_t i = input_file_size - 1; i >= 0; i--) 
-  {
-    if (lseek(fd_source, i, SEEK_SET) == -1) {
-      perror("Erreur lors de l'utilisation de lseek");
-      close(fd_destination);
-      return 1;
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  }
 
   // Freeing allocated data
   free_if_needed(bin_input_param);
