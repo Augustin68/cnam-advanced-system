@@ -1,9 +1,33 @@
+#include <stdio.h> 
+#include <unistd.h>
+
 #include "tar.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
+    int opt;
+    char* filename = "./archive.tar";
+    int list = 0, extract = 0;
 
-    // TODO : extract file and tasks from options
-    char* filename = "/home/tanguy/Seafile/Cours/CNAM/A2/Systèmes_avancées/Projet/test.tar";
+    while((opt = getopt(argc, argv, ":elf:")) != -1)
+    {
+        switch(opt)
+        {
+            case 'f':
+                filename = optarg;
+                break;
+            case 'l':
+                list = 1;
+                break;
+            case 'e':
+                extract = 1;
+                break;
+            case '?': 
+                printf("unknown option: %c\n", opt);
+                break; 
+        }
+    }
+
     FILE* file;
 
     if(!(file = fopen(filename, "rb"))) {
@@ -11,11 +35,16 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    struct tar_header header;
+    
+    if(list) 
+    {
+        tar_list(file);
+    }
 
-    tar_read_header(file, &header);
-
-    print_full_header_info(&header);
+    if(extract) 
+    {
+        tar_extract_archive(file);
+    }
 
     fclose(file);
 

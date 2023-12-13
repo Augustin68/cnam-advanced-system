@@ -4,24 +4,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
+#include <sys/stat.h>
+
+#include "typedef.h"
 
 #define BLOCKSIZE 512
 
-struct tar_header 
-{
-    char name[100]; 		// filename
-    char mode[8];			// access mode
-    char owner[8];			// proprietary id
-    char group[8];			// group id
-    char size[12];			// filesize
-    char mtime[12];			// Last modification date
-    char checksum[8];		
-    char type;			    // File type		
-    char linkname[100];		// link name
-};
-
-
+bool tar_extract_file(FILE* archive, struct tar_header* header);
 int tar_read_header(FILE* file, struct tar_header* header);
 void print_full_header_info(struct tar_header* header);
+bool tar_header_is_empty(struct tar_header* header);
+bool tar_create_folder(struct tar_header* header);
+void tar_extract_archive(FILE* file);
+void tar_list(FILE* file);
 
 #endif // _TAR
