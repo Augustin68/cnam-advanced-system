@@ -15,6 +15,7 @@
 
 #include "exercice1.h"
 #include "exercice2.h"
+#include "exercice3.h"
 
 #define STDOUT 1
 #define STDERR 2
@@ -94,6 +95,7 @@ static struct option binary_opts[] =
   { "verbose", no_argument,       0, 'v' },
   { "input",   required_argument, 0, 'i' },
   { "output",  required_argument, 0, 'o' },
+  { "ls",      required_argument, 0, 'l' },
   { 0,         0,                 0,  0  } 
 };
 
@@ -103,7 +105,7 @@ static struct option binary_opts[] =
  *
  * \see man 3 getopt_long or getopt
  */ 
-const char* binary_optstr = "hvi:o:";
+const char* binary_optstr = "hvil:o:l";
 
 
 
@@ -121,6 +123,7 @@ int main(int argc, char** argv)
   short int is_verbose_mode = 0;
   char* bin_input_param = NULL;
   char* bin_output_param = NULL;
+  char* bin_ls_param = NULL;
 
   // Parsing options
   int opt = -1;
@@ -144,6 +147,14 @@ int main(int argc, char** argv)
           bin_output_param = dup_optarg_str();
         }
         break;
+      case 'l':
+        //ls param
+        printf("EGOOOOOo\n");
+        if (optarg)
+        {
+          bin_ls_param = dup_optarg_str();
+        }
+        break;
       case 'v':
         //verbose mode
         is_verbose_mode = 1;
@@ -153,6 +164,7 @@ int main(int argc, char** argv)
 
         free_if_needed(bin_input_param);
         free_if_needed(bin_output_param);
+        free_if_needed(bin_ls_param);
  
         exit(EXIT_SUCCESS);
       default :
@@ -160,41 +172,39 @@ int main(int argc, char** argv)
     }
   } 
 
-  /**
-   * Checking binary requirements
-   * (could defined in a separate function)
-   */
-  if (bin_input_param == NULL || bin_output_param == NULL)
-  {
-    dprintf(STDERR, "Bad usage! See HELP [--help|-h]\n");
-
-    // Freeing allocated data
-    free_if_needed(bin_input_param);
-    free_if_needed(bin_output_param);
-    // Exiting with a failure ERROR CODE (== 1)
-    exit(EXIT_FAILURE);
-  }
-
-
   // Printing params
   dprintf(1, "** PARAMS **\n%-8s: %s\n%-8s: %s\n%-8s: %d\n", 
           "input",   bin_input_param, 
           "output",  bin_output_param, 
-          "verbose", is_verbose_mode);
+          "verbose", is_verbose_mode,
+          "list",    bin_ls_param
+          );
 
   // Business logic must be implemented at this point
 
   // TP1 exo 1
   //usage: -i [input_file] -o [output_file
-  copyFile(bin_input_param, bin_output_param);
+  if(bin_input_param != NULL && bin_output_param != NULL){
+    printf("exo 1 : \n");
+    copyFile(bin_input_param, bin_output_param);
+  }
 
   // TP1 exo 2
-  printReverse(bin_input_param);
+  if(bin_input_param != NULL){
+    printf("exo 2 : \n");
+    printReverse(bin_input_param);
+  }
 
+  // TP1 exo 3
+  if(bin_ls_param != NULL) {
+    printf("exo 3 : \n");
+    ls(bin_ls_param);
+  }
 
   // Freeing allocated data
   free_if_needed(bin_input_param);
   free_if_needed(bin_output_param);
+  free_if_needed(bin_ls_param);
 
 
   return EXIT_SUCCESS;
