@@ -1,10 +1,6 @@
 {
     "files.associations": {
-<<<<<<< HEAD
         "ratio": "c",
         "tar.h": "c"
-=======
-        "ratio": "c"
->>>>>>> bc6f4ff8b099ea3db4d0835ebf71ae26f7a3c472
     }
 }
