@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     FILE* file;
 
-    if(!(file = fopen(filename, "rb"))) {
+    if(!(file = fopen(filename, "w+b"))) {
         printf("File not existent\n");
         return EXIT_FAILURE;
     }
@@ -45,6 +45,10 @@ int main(int argc, char *argv[])
     {
         tar_extract_archive(file);
     }
+
+    FILE* f = fopen("./heeeeeeey.txt", "r");
+
+    tar_generate_archive(file, f, "./heeeeeeey.txt");
 
     fclose(file);
 

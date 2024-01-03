@@ -2,9 +2,11 @@
 #define _TAR
 
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #include "typedef.h"
@@ -19,5 +21,10 @@ bool tar_header_is_empty(struct tar_header* header);
 bool tar_create_folder(struct tar_header* header);
 void tar_extract_archive(FILE* file);
 void tar_list(FILE* file);
+struct tar_header tar_fill_header(FILE* file, char* filename);
+bool tar_generate_archive(FILE* archive, FILE* file, char* filename);
+void tar_add_end_of_file(FILE* archive);
+unsigned int tar_calculate_checksum_header(char* header_string);
+char* tar_header_to_string(struct tar_header* header);
 
 #endif // _TAR

@@ -73,7 +73,7 @@ void tar_list(FILE* file)
         printf("%s - %lu octets\n", header.name, strtol(header.size, NULL, 8));
 
         long int file_size = strtol(header.size, NULL, 8);
-        long int size_to_seek = (file_size  + 511) / 512 * 512; // We round up to the next multiple of 512
+        long int size_to_seek = (file_size  + 511) / BLOCKSIZE * BLOCKSIZE; // We round up to the next multiple of BLOCKSIZE
         
         fseek(file, size_to_seek, SEEK_CUR); // Seek to skip the content of the file
 
@@ -120,21 +120,21 @@ bool tar_extract_file(FILE* archive, struct tar_header* header)
     if(!file) 
         return false;
 
-    int* temp = malloc(512);
+    int* temp = malloc(BLOCKSIZE);
 
-    for (long int i = 0; i < file_size; i += 512)
+    for (long int i = 0; i < file_size; i += BLOCKSIZE)
     {
         if((file_size) - i > 511) // 
         {
-            fread(temp, 512, 1, archive);
-            fwrite(temp, 512, 1, file);            
+            fread(temp, BLOCKSIZE, 1, archive);
+            fwrite(temp, BLOCKSIZE, 1, file);            
         }
         else 
         {
-            // If there are less than 512 bytes left to extract : we extract what remains and put the cursor at the end of the block
+            // If there are less than BLOCKSIZE bytes left to extract : we extract what remains and put the cursor at the end of the block
             fread(temp, file_size - i, 1, archive);
             fwrite(temp, file_size - i, 1, file); 
-            fseek(archive, i + 512 - file_size, SEEK_CUR);
+            fseek(archive, i + BLOCKSIZE - file_size, SEEK_CUR);
             break;
         }
     }
@@ -153,4 +153,111 @@ bool tar_create_folder(struct tar_header* header)
     }
 
     return mkdir(header->name, strtol(header->mode, NULL, 8));
+}
+
+bool tar_generate_archive(FILE* archive, FILE* file, char* filename) 
+{
+    struct tar_header header = tar_fill_header(file, filename);
+
+    if(tar_header_is_empty(&header)) 
+    {
+        return false;
+    }
+
+    int* temp = malloc(BLOCKSIZE);
+
+    long int file_size = strtol(header.size, NULL, 8);
+
+    fwrite(&header, BLOCKSIZE, 1, archive);
+
+    for (long int i = 0; i < file_size; i += BLOCKSIZE)
+    {
+        fread(temp, BLOCKSIZE, 1, file);
+        fwrite(temp, BLOCKSIZE, 1, archive);            
+    }
+
+    tar_add_end_of_file(archive);
+    
+    free(temp);
+
+    return true;
+}
+
+struct tar_header tar_fill_header(FILE* file, char* filename)
+{
+    struct tar_header header;
+
+    // name
+    strncpy(header.name, filename, 100);
+    header.name[sizeof(header.name) - 1] = '\0';
+
+    // mode 
+    int fd = fileno(file);
+    struct stat file_stat;
+
+    if(fstat(fd, &file_stat) != 0) 
+    {
+        printf("Cest nul\n");
+        return header;
+    }
+
+    sprintf(header.mode, "%o", file_stat.st_mode);
+    sprintf(header.owner, "%o", file_stat.st_uid);
+    sprintf(header.group, "%o", file_stat.st_gid);
+    sprintf(header.size, "%lo", file_stat.st_size); // %o -> octal number
+    sprintf(header.mtime, "%lo", file_stat.st_mtime);
+
+    memset(header.checksum, ' ', sizeof(header.checksum));
+
+    header.type = '0';
+
+    unsigned int checksum = tar_calculate_checksum_header((char *) &header);
+
+    sprintf(header.checksum, "%06o\0 ", checksum);
+
+    return header;
+}
+
+void tar_add_end_of_file(FILE* archive) 
+{
+    char data[BLOCKSIZE];
+
+    memset(data, 0, BLOCKSIZE);
+
+    for(int i = 0; i < 3; i++)
+    {
+        fwrite(data, BLOCKSIZE, 1, archive);
+    }
+}
+
+// Put the pointer to the beginning of the end blocks of archive
+void tar_seek_to_archive_end(FILE* file) 
+{
+    fseek(file, BLOCKSIZE, SEEK_END);
+
+    struct tar_header header;
+
+    do {
+        tar_read_header(file, &header);
+
+        fseek(file, -BLOCKSIZE * 2, SEEK_CUR);
+
+        printf("On est la : %lx\n", ftell(file));
+    }
+    while(tar_header_is_empty(&header));
+
+    fseek(file, BLOCKSIZE , SEEK_CUR);
+}
+
+unsigned int tar_calculate_checksum_header(char* header_string)
+{    
+    unsigned int sum = 0;
+    unsigned int size = BLOCKSIZE;
+
+    for(int i = 0; i < size; i++)
+    {
+        sum += (unsigned int) header_string[i];
+    }
+    
+    return sum;
 }
