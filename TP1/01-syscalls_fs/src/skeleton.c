@@ -11,8 +11,11 @@
 #include<stdlib.h>
 #include<string.h>
 #include<errno.h>
-
 #include<getopt.h>
+
+#include "exercice1.h"
+#include "exercice2.h"
+#include "exercice3.h"
 
 #define STDOUT 1
 #define STDERR 2
@@ -92,6 +95,7 @@ static struct option binary_opts[] =
   { "verbose", no_argument,       0, 'v' },
   { "input",   required_argument, 0, 'i' },
   { "output",  required_argument, 0, 'o' },
+  { "ls",      required_argument, 0, 'l' },
   { 0,         0,                 0,  0  } 
 };
 
@@ -101,7 +105,7 @@ static struct option binary_opts[] =
  *
  * \see man 3 getopt_long or getopt
  */ 
-const char* binary_optstr = "hvi:o:";
+const char* binary_optstr = "hvil:o:l";
 
 
 
@@ -119,6 +123,7 @@ int main(int argc, char** argv)
   short int is_verbose_mode = 0;
   char* bin_input_param = NULL;
   char* bin_output_param = NULL;
+  char* bin_ls_param = NULL;
 
   // Parsing options
   int opt = -1;
@@ -142,6 +147,14 @@ int main(int argc, char** argv)
           bin_output_param = dup_optarg_str();
         }
         break;
+      case 'l':
+        //ls param
+        printf("EGOOOOOo\n");
+        if (optarg)
+        {
+          bin_ls_param = dup_optarg_str();
+        }
+        break;
       case 'v':
         //verbose mode
         is_verbose_mode = 1;
@@ -151,6 +164,7 @@ int main(int argc, char** argv)
 
         free_if_needed(bin_input_param);
         free_if_needed(bin_output_param);
+        free_if_needed(bin_ls_param);
  
         exit(EXIT_SUCCESS);
       default :
@@ -158,88 +172,39 @@ int main(int argc, char** argv)
     }
   } 
 
-  /**
-   * Checking binary requirements
-   * (could defined in a separate function)
-   */
-  if (bin_input_param == NULL || bin_output_param == NULL)
-  {
-    dprintf(STDERR, "Bad usage! See HELP [--help|-h]\n");
-
-    // Freeing allocated data
-    free_if_needed(bin_input_param);
-    free_if_needed(bin_output_param);
-    // Exiting with a failure ERROR CODE (== 1)
-    exit(EXIT_FAILURE);
-  }
-
-
   // Printing params
   dprintf(1, "** PARAMS **\n%-8s: %s\n%-8s: %s\n%-8s: %d\n", 
           "input",   bin_input_param, 
           "output",  bin_output_param, 
-          "verbose", is_verbose_mode);
+          "verbose", is_verbose_mode,
+          "list",    bin_ls_param
+          );
 
   // Business logic must be implemented at this point
 
   // TP1 exo 1
-  FILE* fd_source = fopen(bin_input_param, "rb");
-  if(fd_source == NULL) 
-  {
-    printf("Impossible d'ouvrir le fichier source.\n");
-    exit(EXIT_FAILURE);
+  //usage: -i [input_file] -o [output_file
+  if(bin_input_param != NULL && bin_output_param != NULL){
+    printf("exo 1 : \n");
+    copyFile(bin_input_param, bin_output_param);
   }
-
-  FILE* fd_destination = fopen(bin_output_param, "wb");
-  if(fd_destination == NULL) 
-  {
-    printf("Impossible d'ouvrir le fichier de destination.\n");
-    exit(EXIT_FAILURE);
-  }
-
-  char buffer[BUFFER_SIZE];
-  size_t nb_char_read;
-
-  do 
-  {
-    nb_char_read = fread(buffer, 1, sizeof(buffer), fd_source);
-
-    if(nb_char_read == -1) 
-    {
-      printf("Esta muchos la mierdas\n");
-      fclose(fd_source);
-      fclose(fd_destination);
-      exit(EXIT_FAILURE);
-    } 
-
-    if(nb_char_read > 0) 
-    {
-      fwrite(buffer, 1, nb_char_read, fd_destination);
-    }
-  } while(nb_char_read == BUFFER_SIZE);
-
-  printf("Sikish ahein\n");
 
   // TP1 exo 2
-  size_t input_file_size = lseek(fd_source, 0, SEEK_END);
-  if(input_file_size == -1) 
-  {
-    printf("Impossible de lseek le fichier de destination.\n");
-    exit(EXIT_FAILURE);
+  if(bin_input_param != NULL){
+    printf("exo 2 : \n");
+    printReverse(bin_input_param);
   }
 
-  for(size_t i = input_file_size - 1; i >= 0; i--) 
-  {
-    if (lseek(fd_source, i, SEEK_SET) == -1) {
-      perror("Erreur lors de l'utilisation de lseek");
-      close(fd_destination);
-      return 1;
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+  // TP1 exo 3
+  if(bin_ls_param != NULL) {
+    printf("exo 3 : \n");
+    ls(bin_ls_param);
   }
 
   // Freeing allocated data
   free_if_needed(bin_input_param);
   free_if_needed(bin_output_param);
+  free_if_needed(bin_ls_param);
 
 
   return EXIT_SUCCESS;
