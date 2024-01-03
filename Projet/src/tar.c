@@ -271,3 +271,17 @@ void tar_add_end_of_file(FILE* archive)
         fwrite(data, BLOCKSIZE, 1, archive);
     }
 }
+
+// calculate checksum of file's tar header
+unsigned int tar_calculate_checksum_header(char* header_string)
+{    
+    unsigned int sum = 0;
+    unsigned int size = BLOCKSIZE;
+
+    for(int i = 0; i < size; i++)
+    {
+        sum += (unsigned int) header_string[i];
+    }
+
+    return sum;
+}

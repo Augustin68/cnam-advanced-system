@@ -3,6 +3,16 @@
 
 #include "tar.h"
 
+void usage(char *name) 
+{
+    printf("Utilisation : %s -f ARCHIVE_FILE [-l] [-e] [-c FILE] [-h]\n", name);
+    printf("-f ARCHIVE_FILE : précise le nom de l'archive (obligatoire pour la création d'une archive)\n");
+    printf("-l : liste le contenu de l'archive\n");
+    printf("-e : extrait le contenu de l'archive\n");
+    printf("-c FILE : génère une archive avec les noms de fichiers précisés\n");
+    printf("-h : affiche ce message d'aide\n");
+}
+
 int main(int argc, char *argv[]) 
 {
     int opt;
@@ -12,18 +22,21 @@ int main(int argc, char *argv[])
     int nb_files = 0;
 
 
-    while((opt = getopt(argc, argv, ":elc:f:")) != -1)
+    while((opt = getopt(argc, argv, ":e:l:hc:")) != -1)
     {
         switch(opt)
         {
             case 'f':
+                compress = 1;
                 archivename = optarg;               
                 break;
             case 'l':
                 list = 1;
+                archivename = optarg;               
                 break;
             case 'e':
                 extract = 1;
+                archivename = optarg;
                 break;
             case 'c':
                 compress = 1;
@@ -33,7 +46,15 @@ int main(int argc, char *argv[])
             case '?': 
                 fprintf(stderr, "Unknown option: %c\n", opt);
                 break; 
+            default: 
+                usage(argv[0]);
+                break;
         }
+    }
+
+    if(list == 0 && extract == 0 && compress == 0) {
+        usage(argv[0]);
+        return EXIT_FAILURE;
     }
 
     FILE* archive;
@@ -68,7 +89,7 @@ int main(int argc, char *argv[])
     }
 
     fclose(archive);
-    
+
 
     return EXIT_SUCCESS;
 }
