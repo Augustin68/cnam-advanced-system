@@ -227,7 +227,12 @@ struct tar_header tar_fill_header(FILE* file, char* filename)
 
     memset(header.checksum, ' ', sizeof(header.checksum));
 
-    header.type = '0'; // TODO : changer le type
+    header.type = '0';
+
+    if(file_stat.st_size == 0) 
+    {
+        header.type = '5';
+    } 
 
     unsigned int checksum = tar_calculate_checksum_header((char *) &header);
 
