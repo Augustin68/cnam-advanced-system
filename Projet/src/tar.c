@@ -1,5 +1,6 @@
 #include "tar.h"
 
+// read header from tar archive
 int tar_read_header(FILE* file, struct tar_header* header) 
 {
     if(file == NULL) 
@@ -18,6 +19,7 @@ int tar_read_header(FILE* file, struct tar_header* header)
     }
 }
 
+// display all informations from a tar header (for debug)
 void print_full_header_info(struct tar_header* header) 
 {
     printf("Nom du fichier : %s\n", header->name);
@@ -40,6 +42,7 @@ void print_full_header_info(struct tar_header* header)
     printf("\n");
 }
 
+// check if tar header is empty
 bool tar_header_is_empty(struct tar_header* header)
 {
     if(header->name[0] == '\0' && header->size[0] == '\0' && header->type == '\0') 
@@ -52,6 +55,7 @@ bool tar_header_is_empty(struct tar_header* header)
     }
 }
 
+// list all files in tar archive
 void tar_list(FILE* file) 
 {
     long int bytes_read = 0;
@@ -84,6 +88,7 @@ void tar_list(FILE* file)
     fseek(file, 0, SEEK_SET); 
 }
 
+// extract all files from tar archive
 void tar_extract_archive(FILE* file) 
 {
     struct tar_header header;
@@ -111,6 +116,7 @@ void tar_extract_archive(FILE* file)
     fseek(file, 0, SEEK_SET); 
 }
 
+// extract a single file from tar archive
 bool tar_extract_file(FILE* archive, struct tar_header* header)
 {
     FILE* file = fopen(header->name, "w");
@@ -151,6 +157,7 @@ bool tar_extract_file(FILE* archive, struct tar_header* header)
     return true;
 }
 
+// create a folder from tar archive
 bool tar_create_folder(struct tar_header* header)
 {
     if(strtol(header->size, NULL, OCTAL_BASE) > 0) // if size > 0 : not a folder
@@ -161,6 +168,7 @@ bool tar_create_folder(struct tar_header* header)
     return mkdir(header->name, strtol(header->mode, NULL, OCTAL_BASE));
 }
 
+// generate a tar archive with given files 
 void tar_generate_archive(FILE* archive, char* filenames[], int nb_files)
 {
     for(int i = 0; i < nb_files; i++) 
@@ -171,7 +179,7 @@ void tar_generate_archive(FILE* archive, char* filenames[], int nb_files)
         {
             fprintf(stderr, "Error : tar_generate_archive() : cannot open file %s\n", filenames[i]);
             fprintf(stderr, strerror(errno));
-            
+
             return;
         }
 
@@ -183,6 +191,7 @@ void tar_generate_archive(FILE* archive, char* filenames[], int nb_files)
     tar_add_end_of_file(archive);
 }
 
+// add a single file into tar archive
 bool tar_add_file_to_archive(FILE* archive, FILE* file, char* filename) 
 {
     struct tar_header header = tar_fill_header(file, filename);
@@ -209,6 +218,7 @@ bool tar_add_file_to_archive(FILE* archive, FILE* file, char* filename)
     return true;
 }
 
+// create a tar header from file
 struct tar_header tar_fill_header(FILE* file, char* filename)
 {
     struct tar_header header;
@@ -249,6 +259,7 @@ struct tar_header tar_fill_header(FILE* file, char* filename)
     return header;
 }
 
+// add 2 blocks of empty bytes at the end of the archive
 void tar_add_end_of_file(FILE* archive) 
 {
     char data[BLOCKSIZE];
@@ -259,36 +270,4 @@ void tar_add_end_of_file(FILE* archive)
     {
         fwrite(data, BLOCKSIZE, 1, archive);
     }
-}
-
-// Put the pointer to the beginning of the end blocks of archive
-void tar_seek_to_archive_end(FILE* file) 
-{
-    fseek(file, BLOCKSIZE, SEEK_END);
-
-    struct tar_header header;
-
-    do {
-        tar_read_header(file, &header);
-
-        // we seek from one to the right when reading header
-        // so we seek from two blocks to the left 
-        fseek(file, -BLOCKSIZE * 2, SEEK_CUR);
-    }
-    while(tar_header_is_empty(&header));
-
-    fseek(file, BLOCKSIZE , SEEK_CUR);
-}
-
-unsigned int tar_calculate_checksum_header(char* header_string)
-{    
-    unsigned int sum = 0;
-    unsigned int size = BLOCKSIZE;
-
-    for(int i = 0; i < size; i++)
-    {
-        sum += (unsigned int) header_string[i];
-    }
-    
-    return sum;
 }
