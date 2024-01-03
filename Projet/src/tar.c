@@ -155,7 +155,27 @@ bool tar_create_folder(struct tar_header* header)
     return mkdir(header->name, strtol(header->mode, NULL, 8));
 }
 
-bool tar_generate_archive(FILE* archive, FILE* file, char* filename) 
+void tar_generate_archive(FILE* archive, char* filenames[], int nb_files)
+{
+    for(int i = 0; i < nb_files; i++) 
+    {
+        FILE* file;
+        
+        if(!(file = fopen(filenames[i], "r")) )
+        {
+            fprintf(stderr, "Error : tar_generate_archive() : cannot open file %s\n", filenames[i]);
+            return;
+        }
+
+        tar_add_file_to_archive(archive, file, filenames[i]);
+
+        fclose(file);
+    }
+
+    tar_add_end_of_file(archive);
+}
+
+bool tar_add_file_to_archive(FILE* archive, FILE* file, char* filename) 
 {
     struct tar_header header = tar_fill_header(file, filename);
 
@@ -175,8 +195,6 @@ bool tar_generate_archive(FILE* archive, FILE* file, char* filename)
         fread(temp, BLOCKSIZE, 1, file);
         fwrite(temp, BLOCKSIZE, 1, archive);            
     }
-
-    tar_add_end_of_file(archive);
     
     free(temp);
 
@@ -187,11 +205,7 @@ struct tar_header tar_fill_header(FILE* file, char* filename)
 {
     struct tar_header header;
 
-    // name
-    strncpy(header.name, filename, 100);
-    header.name[sizeof(header.name) - 1] = '\0';
-
-    // mode 
+    // mode
     int fd = fileno(file);
     struct stat file_stat;
 
@@ -201,15 +215,19 @@ struct tar_header tar_fill_header(FILE* file, char* filename)
         return header;
     }
 
+    // name
+    strncpy(header.name, filename, 100);
+    header.name[sizeof(header.name) - 1] = '\0';
+
     sprintf(header.mode, "%o", file_stat.st_mode);
     sprintf(header.owner, "%o", file_stat.st_uid);
     sprintf(header.group, "%o", file_stat.st_gid);
-    sprintf(header.size, "%lo", file_stat.st_size); // %o -> octal number
+    sprintf(header.size, "%lo", file_stat.st_size);
     sprintf(header.mtime, "%lo", file_stat.st_mtime);
 
     memset(header.checksum, ' ', sizeof(header.checksum));
 
-    header.type = '0';
+    header.type = '0'; // TODO : changer le type
 
     unsigned int checksum = tar_calculate_checksum_header((char *) &header);
 

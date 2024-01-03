@@ -6,15 +6,18 @@
 int main(int argc, char *argv[]) 
 {
     int opt;
-    char* filename = "./archive.tar";
-    int list = 0, extract = 0;
+    char* archivename;
+    char* filenames[argc];
+    int list = 0, extract = 0, compress = 0;
+    int nb_files = 0;
 
-    while((opt = getopt(argc, argv, ":elf:")) != -1)
+
+    while((opt = getopt(argc, argv, ":elc:f:")) != -1)
     {
         switch(opt)
         {
             case 'f':
-                filename = optarg;
+                archivename = optarg;               
                 break;
             case 'l':
                 list = 1;
@@ -22,35 +25,48 @@ int main(int argc, char *argv[])
             case 'e':
                 extract = 1;
                 break;
+            case 'c':
+                compress = 1;
+                filenames[nb_files] = optarg;
+                nb_files++;
+                break;
             case '?': 
-                printf("unknown option: %c\n", opt);
+                fprintf(stderr, "Unknown option: %c\n", opt);
                 break; 
         }
     }
 
-    FILE* file;
+    FILE* archive;
 
-    if(!(file = fopen(filename, "w+b"))) {
-        printf("File not existent\n");
+    char* mode = "r+b";
+
+    if(compress) 
+    {
+        mode = "w+b";
+    }
+
+    if(!(archive = fopen(archivename, mode))) {
+        fprintf(stderr, "Error : main() : cannot fopen archive\n");
         return EXIT_FAILURE;
     }
 
-    
+
     if(list) 
     {
-        tar_list(file);
+        tar_list(archive);
     }
 
-    if(extract) 
+    if(extract)
     {
-        tar_extract_archive(file);
+        tar_extract_archive(archive);
     }
 
-    FILE* f = fopen("./heeeeeeey.txt", "r");
+    if(compress)
+    {
+        tar_generate_archive(archive, filenames, nb_files);
+    }
 
-    tar_generate_archive(file, f, "./heeeeeeey.txt");
-
-    fclose(file);
+    fclose(archive);
 
     return EXIT_SUCCESS;
 }
