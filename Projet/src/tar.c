@@ -4,7 +4,7 @@ int tar_read_header(FILE* file, struct tar_header* header)
 {
     if(file == NULL) 
     {
-        printf("Bad file\n"); // TODO : better error management
+        printf("Bad file\n"); 
         return -1;
     }
 
@@ -115,6 +115,12 @@ bool tar_extract_file(FILE* archive, struct tar_header* header)
 {
     FILE* file = fopen(header->name, "w");
 
+    if(file == NULL) 
+    {
+        fprintf(stderr, "Error : tar_extract_file() : cannot fopen archive\n");
+        fprintf(stderr, strerror(errno));
+    }
+
     long int file_size = strtol(header->size, NULL, OCTAL_BASE);
 
     if(!file) 
@@ -164,6 +170,8 @@ void tar_generate_archive(FILE* archive, char* filenames[], int nb_files)
         if(!(file = fopen(filenames[i], "r")) )
         {
             fprintf(stderr, "Error : tar_generate_archive() : cannot open file %s\n", filenames[i]);
+            fprintf(stderr, strerror(errno));
+            
             return;
         }
 

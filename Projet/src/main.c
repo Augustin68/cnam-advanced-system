@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 
     if(!(archive = fopen(archivename, mode))) {
         fprintf(stderr, "Error : main() : cannot fopen archive\n");
+        fprintf(stderr, strerror(errno));
         return EXIT_FAILURE;
     }
 
@@ -67,6 +68,7 @@ int main(int argc, char *argv[])
     }
 
     fclose(archive);
+    
 
     return EXIT_SUCCESS;
 }

@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "typedef.h"
 
