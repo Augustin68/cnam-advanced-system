@@ -211,7 +211,7 @@ struct tar_header tar_fill_header(FILE* file, char* filename)
 
     if(fstat(fd, &file_stat) != 0) 
     {
-        printf("Cest nul\n");
+        printf("Error : \tar_fill_header() : error when reading file metadatas\n");
         return header;
     }
 
@@ -258,9 +258,9 @@ void tar_seek_to_archive_end(FILE* file)
     do {
         tar_read_header(file, &header);
 
+        // we seek from one to the right when reading header
+        // so we seek from two blocks to the left 
         fseek(file, -BLOCKSIZE * 2, SEEK_CUR);
-
-        printf("On est la : %lx\n", ftell(file));
     }
     while(tar_header_is_empty(&header));
 
