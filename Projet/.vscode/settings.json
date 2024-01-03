@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "ratio": "c",
-        "tar.h": "c"
+        "tar.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "span": "c",
+        "valarray": "c"
     }
 }

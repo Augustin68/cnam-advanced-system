@@ -9,7 +9,7 @@ struct tar_header {
     char size[12];          // filesize
     char mtime[12];         // Last modification date
     char checksum[8];
-    char type;              // File type      
+    char type;              // File type
     char linkname[100];     // link name
     char magic[6];
     char version[2];
