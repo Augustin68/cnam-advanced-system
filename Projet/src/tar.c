@@ -24,9 +24,9 @@ void print_full_header_info(struct tar_header* header)
     printf("Mode d'accès : %s\n", header->mode);
     printf("ID du propriétaire : %s\n", header->owner);
     printf("ID du groupe : %s\n", header->group);
-    printf("Taille du fichier : %lu octets\n", strtol(header->size, NULL, 8));
+    printf("Taille du fichier : %lu octets\n", strtol(header->size, NULL, OCTAL_BASE));
     
-    time_t mtime = strtol(header->mtime, NULL, 8);
+    time_t mtime = strtol(header->mtime, NULL, OCTAL_BASE);
     struct tm *tm_info = localtime(&mtime);
     char mtime_str[20];
     // strftime(mtime_str, sizeof(mtime_str), "%Y-%m-%d %H:%M:%S", tm_info);
@@ -70,10 +70,10 @@ void tar_list(FILE* file)
 
         bytes_read += (sizeof header);
 
-        printf("%s - %lu octets\n", header.name, strtol(header.size, NULL, 8));
+        printf("%s - %lu octets\n", header.name, strtol(header.size, NULL, OCTAL_BASE));
 
-        long int file_size = strtol(header.size, NULL, 8);
-        long int size_to_seek = (file_size  + 511) / BLOCKSIZE * BLOCKSIZE; // We round up to the next multiple of BLOCKSIZE
+        long int file_size = strtol(header.size, NULL, OCTAL_BASE);
+        long int size_to_seek = (file_size  + BLOCKSIZE - 1) / BLOCKSIZE * BLOCKSIZE; // We round up to the next multiple of BLOCKSIZE
         
         fseek(file, size_to_seek, SEEK_CUR); // Seek to skip the content of the file
 
@@ -97,7 +97,7 @@ void tar_extract_archive(FILE* file)
             break;
         }
 
-        if(strtol(header.size, NULL, 8) == 0)
+        if(strtol(header.size, NULL, OCTAL_BASE) == 0)
         {
             tar_create_folder(&header);
         }
@@ -115,7 +115,7 @@ bool tar_extract_file(FILE* archive, struct tar_header* header)
 {
     FILE* file = fopen(header->name, "w");
 
-    long int file_size = strtol(header->size, NULL, 8);
+    long int file_size = strtol(header->size, NULL, OCTAL_BASE);
 
     if(!file) 
         return false;
@@ -147,12 +147,12 @@ bool tar_extract_file(FILE* archive, struct tar_header* header)
 
 bool tar_create_folder(struct tar_header* header)
 {
-    if(strtol(header->size, NULL, 8) > 0) // if size > 0 : not a folder
+    if(strtol(header->size, NULL, OCTAL_BASE) > 0) // if size > 0 : not a folder
     {
         return false;
     }
 
-    return mkdir(header->name, strtol(header->mode, NULL, 8));
+    return mkdir(header->name, strtol(header->mode, NULL, OCTAL_BASE));
 }
 
 void tar_generate_archive(FILE* archive, char* filenames[], int nb_files)
@@ -186,7 +186,7 @@ bool tar_add_file_to_archive(FILE* archive, FILE* file, char* filename)
 
     int* temp = malloc(BLOCKSIZE);
 
-    long int file_size = strtol(header.size, NULL, 8);
+    long int file_size = strtol(header.size, NULL, OCTAL_BASE);
 
     fwrite(&header, BLOCKSIZE, 1, archive);
 
@@ -242,7 +242,7 @@ void tar_add_end_of_file(FILE* archive)
 
     memset(data, 0, BLOCKSIZE);
 
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < NUMBER_TRAILING_EMPTY_BLOCK; i++)
     {
         fwrite(data, BLOCKSIZE, 1, archive);
     }

@@ -12,6 +12,8 @@
 #include "typedef.h"
 
 #define BLOCKSIZE 512
+#define OCTAL_BASE 8
+#define NUMBER_TRAILING_EMPTY_BLOCK 3
 
 bool tar_extract_file(FILE* archive, struct tar_header* header);
 int tar_read_header(FILE* file, struct tar_header* header);
