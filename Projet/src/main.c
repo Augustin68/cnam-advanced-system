@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     int nb_files = 0;
 
 
-    while((opt = getopt(argc, argv, ":e:l:hc:")) != -1)
+    while((opt = getopt(argc, argv, ":e:f:l:hc:")) != -1)
     {
         switch(opt)
         {
